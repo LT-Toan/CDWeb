@@ -1,7 +1,12 @@
 package com.example.Custom.service;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,11 +54,74 @@ public class OrderService {
         }
         order.setTotalPrice(totalPrice);
 
-        // Save the order (and optionally create order details)
         return orderRepository.save(order);
     }
 
     public List<Order> getOrderByUser(User user) {
         return orderRepository.findByUser(user);
     }
+
+    public long getTotalOrders() {
+        return orderRepository.count();
+    }
+
+    public double getTotalRevenue() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream()
+                .mapToDouble(Order::getTotalPrice)
+                .sum();
+    }
+
+    //bieu do doanh thu
+    public Map<String, Double> getRevenuePerDayThisWeek() {
+        Map<String, Double> revenueMap = new LinkedHashMap<>();
+        LocalDate today = LocalDate.now();
+        DayOfWeek todayDow = today.getDayOfWeek();
+        LocalDate monday = today.minusDays(todayDow.getValue() - DayOfWeek.MONDAY.getValue());
+
+        for (int i = 0; i < 7; i++) {
+            LocalDate day = monday.plusDays(i);
+            LocalDateTime startOfDay = day.atStartOfDay();
+            LocalDateTime endOfDay = day.atTime(LocalTime.MAX);
+
+            Double revenue = orderRepository.sumTotalPriceByCreatedDateBetween(startOfDay, endOfDay);
+            if (revenue == null) revenue = 0.0;
+
+            String dayLabel = switch (i) {
+                case 0 -> "T2";
+                case 1 -> "T3";
+                case 2 -> "T4";
+                case 3 -> "T5";
+                case 4 -> "T6";
+                case 5 -> "T7";
+                case 6 -> "CN";
+                default -> "N/A";
+            };
+            revenueMap.put(dayLabel, revenue);
+        }
+
+        return revenueMap;
+    }
+
+    //bieu do dơn hang theo thang
+    public Map<String, Integer> getOrderCountPerMonth() {
+        Map<String, Integer> result = new LinkedHashMap<>();
+        int year = LocalDate.now().getYear();
+
+        for (int month = 1; month <= 12; month++) {
+            String label = "T" + month;
+            int count = orderRepository.countByMonth(month, year);
+            result.put(label, count);
+        }
+
+        return result;
+    }
+
+    public List<Order> getAllOrder() {
+        return orderRepository.findAll();
+    }
+
+
+
+
 }

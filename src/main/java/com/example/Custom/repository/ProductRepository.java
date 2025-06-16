@@ -7,5 +7,5 @@ import com.example.Custom.domain.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
+    long count();
 }

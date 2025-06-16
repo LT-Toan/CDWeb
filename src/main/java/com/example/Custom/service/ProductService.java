@@ -167,7 +167,9 @@ public class ProductService {
             session.setAttribute("sum", cart.getCartItems().size());
         }
     }
-    
 
-    
+    public long countAllProducts() {
+        return productRepository.count();
+    }
+
 }

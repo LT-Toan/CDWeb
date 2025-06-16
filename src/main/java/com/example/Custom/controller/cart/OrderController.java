@@ -49,9 +49,6 @@ public class OrderController {
         this.orderRepository=orderRepository;
     }
 
-    
-
-
     @GetMapping("/order")
     public String show(Model model, HttpServletRequest request){
         User user = new User();
@@ -139,7 +136,9 @@ public class OrderController {
 
 
     @PostMapping("/place-order")
-    public String placeOrder(@ModelAttribute("orderDTO") OrderDTO orderDTO, HttpServletRequest request) {
+    public String placeOrder(@ModelAttribute("orderDTO") OrderDTO orderDTO,
+                             HttpServletRequest request,
+                             Model model) {
         HttpSession session = request.getSession();
         Long userId = (Long) session.getAttribute("id");
 
@@ -148,7 +147,7 @@ public class OrderController {
         }
 
         User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         CheckoutCartDTO checkoutCart = (CheckoutCartDTO) session.getAttribute("checkoutCart");
 
@@ -156,32 +155,35 @@ public class OrderController {
             throw new RuntimeException("Checkout cart is empty");
         }
 
+        // Tạo đơn hàng
         Order order = orderService.createOrderFromDTO(orderDTO, checkoutCart, user);
 
+        // Cập nhật giỏ hàng và lưu đơn hàng
         cartService.handlePlaceOrder(order, checkoutCart.getCartItems());
 
-        // Clean up session
+        // Tính tổng tiền
+        double total = 0;
+        for (CheckoutCartDTO.CheckoutCartItemDTO item : checkoutCart.getCartItems()) {
+            total += item.getPrice() * item.getQuantity();
+        }
+
+        // Gửi dữ liệu sang bill.jsp
+        model.addAttribute("orderDTO", orderDTO);
+        model.addAttribute("cartItems", checkoutCart.getCartItems());
+        model.addAttribute("totalPrice", total);
+
+        // Xoá session sau khi đặt hàng
         session.removeAttribute("checkoutCart");
-        session.removeAttribute("cartItems");
-        session.removeAttribute("cart");
         session.setAttribute("sum", 0);
 
-        return "redirect:/thanks";
+        return "home/bill"; // Trả về trang JSP in hóa đơn
     }
-    
-    @GetMapping("/thanks")
-    public String thanks(){
-        return "home/thanks";
-    }
+
     @GetMapping("/api/order/{id}")
     @ResponseBody
     public OrderDetailDTO getOrderDetail(@PathVariable Long id) {
-
-        
-
         Order order = orderRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Order not found"));
-        
         OrderDetailDTO dto = new OrderDetailDTO();
         dto.setId(order.getId());
         dto.setTotalPrice(order.getTotalPrice());

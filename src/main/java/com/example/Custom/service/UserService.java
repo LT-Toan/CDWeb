@@ -44,7 +44,7 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        return userRepository.findByEmailWithCartItems(email);
     }
 
     public boolean checkEmailExist(String email) {
@@ -66,4 +66,18 @@ public class UserService {
     public User saveUser(User user) {
         return userRepository.save(user);
     }
+
+    public long getTotalUsers() {
+        return userRepository.count(); // tổng cả USER + ADMIN
+    }
+
+    public long getTotalAdmins() {
+        return userRepository.countByRoleName("ADMIN");
+    }
+
+    public long getTotalNormalUsers() {
+        return userRepository.countByRoleName("USER");
+    }
+
+
 }

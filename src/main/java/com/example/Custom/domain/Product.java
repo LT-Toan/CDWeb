@@ -34,7 +34,7 @@ public class Product implements Serializable{
     private double price;
     private String size;
     private String color;
-    private String material; // lua, gam, voan,...
+    private String material;
 
     @Column(nullable = false)
     private Integer stock;

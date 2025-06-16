@@ -127,29 +127,71 @@
                             </td>
                         </tr>
                     </c:forEach>
-                
-             
-                        <tr>
-                            <td colspan="3" class="text-right font-weight-semibold p-4">Tổng cộng:</td>
-                            <td class="text-right font-weight-semibold p-4" data-cart-total>
-                                <fmt:formatNumber type="number" value="${totalPrice}" /> đ
-                            </td>
-                            <td></td>
-                        </tr>
+
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-semibold p-4">Giảm giá:</td>
+                        <td class="text-right font-weight-semibold p-4 text-success">
+                            <c:choose>
+                                <c:when test="${discountAmount != null && discountAmount > 0}">
+                                    - <fmt:formatNumber type="number" value="${discountAmount}" /> đ
+                                </c:when>
+                                <c:otherwise>
+                                    0 đ
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="3" class="text-right font-weight-semibold p-4">Tổng cộng:</td>
+                        <td class="text-right font-weight-semibold p-4" data-cart-total>
+                            <c:choose>
+                                <c:when test="${discountAmount != null && discountAmount > 0}">
+                                    <fmt:formatNumber type="number" value="${totalPrice - discountAmount}" /> đ
+                                </c:when>
+                                <c:otherwise>
+                                    <fmt:formatNumber type="number" value="${totalPrice}" /> đ
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
+                        <td></td>
+                    </tr>
+
 
                 </tbody>
               </table>
             </div>
             <!-- / Shopping cart table -->
-        
-            <div class="d-flex flex-wrap justify-content-between align-items-center pb-4">
-              <div class="mt-4">
-                <label class="text-muted font-weight-normal">Promocode</label>
-                <input type="text" placeholder="ABC" class="form-control">
-              </div>
-              
+
+            <div class="pb-4">
+                <form action="/apply-promocode" method="post" class="mt-4">
+                    <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+
+                    <label class="text-muted font-weight-normal" style="display: block; margin-bottom: 10px;">
+                        Mã giảm giá
+                    </label>
+
+                    <div class="d-flex align-items-start" style="gap: 10px;">
+                        <div>
+                            <input type="text" name="promocode" placeholder="Nhập mã giảm giá"
+                                   value="${appliedCode}" class="form-control" style="width: 200px;" />
+
+                            <!-- Thông báo lỗi nằm dưới ô nhập -->
+                            <c:if test="${not empty promoError}">
+                                <p class="text-danger mt-1 mb-0" id="promo-error">${promoError}</p>
+                            </c:if>
+                        </div>
+
+                        <div>
+                            <button type="submit" class="btn btn-success">Xác nhận</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <form:form action="/confirm-checkout" method="post" modelAttribute="cart">
+
+
+            <form:form action="/confirm-checkout" method="post">
                   <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
 
                   <div style="display: none;">
@@ -157,14 +199,14 @@
                           <div class="mb-3">
                               <!-- CartItem ID -->
                               <div class="form-group">
-                                  <label for="">Id:</label>
+                                  <label>Id:</label>
                                   <input type="text" class="form-control" value="${cartItem.id}"
                                         name="cartItems[${status.index}].id" />
                               </div>
 
                               <!-- Quantity -->
                               <div class="form-group">
-                                  <label for="">Quantity:</label>
+                                  <label>Quantity:</label>
                                   <input type="number" class="form-control" value="${cartItem.quantity}"
                                         name="cartItems[${status.index}].quantity" />
                               </div>
@@ -181,15 +223,14 @@
                   </div>
 
                   <div class="float-right">
-                      <button type="submit" class="btn btn-lg btn-primary mt-2">Checkout</button>
+                      <button type="submit" class="btn btn-lg btn-primary mt-2">Thanh toán</button>
                   </div>
             </form:form>
 
-
-            
-            <a href="/">Quy ve trang chu</a>
-
-          </div>
+            <div class="" style="margin-top: 30px">
+                <a href="/">Trở về Trang chủ</a>
+            </div>
+        </div>
       </div>
   </div>
 
@@ -198,23 +239,19 @@
 <div id="zoom-modal" onclick="closeZoom()">
   <img id="zoomed-img" src="" alt="Zoomed Image">
 </div>
-
                     <jsp:include page="layout/footer.jsp" />
+                    <script>
+                        function zoomImage(src) {
+                            const modal = document.getElementById("zoom-modal");
+                            const zoomImg = document.getElementById("zoomed-img");
+                            zoomImg.src = src;
+                            modal.style.display = "flex";
+                        }
 
-
-
-                      <script>
-                      function zoomImage(src) {
-                        const modal = document.getElementById("zoom-modal");
-                        const zoomImg = document.getElementById("zoomed-img");
-                        zoomImg.src = src;
-                        modal.style.display = "flex";
-                      }
-
-                      function closeZoom() {
-                        document.getElementById("zoom-modal").style.display = "none";
-                      }
-                      </script>
+                        function closeZoom() {
+                            document.getElementById("zoom-modal").style.display = "none";
+                        }
+                    </script>
 
 
                     <!-- JavaScript Libraries -->
@@ -228,5 +265,16 @@
                     <!-- Template Javascript -->
                     <script src="/js/main.js"></script>
                     <script src="/js/cart.js"></script>
-</body>
+
+                    <script>
+                        window.addEventListener('DOMContentLoaded', function () {
+                            const errorEl = document.getElementById('promo-error');
+                            if (errorEl) {
+                                setTimeout(() => {
+                                    errorEl.style.display = 'none';
+                                }, 3000);
+                            }
+                        });
+                    </script>
+                </body>
 </html>

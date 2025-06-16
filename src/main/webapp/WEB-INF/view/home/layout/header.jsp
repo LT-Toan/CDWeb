@@ -60,7 +60,7 @@
                                                     </li>
                                                 </c:if>
 
-                                                <li><a class="dropdown-item" href="#">Quản lý tài khoản</a></li>
+                                                <li><a class="dropdown-item" href="/account/profile">Quản lý tài khoản</a></li>
 
                                                 <li><a class="dropdown-item" href="/history-order">Lịch sử mua hàng</a>
                                                 </li>
